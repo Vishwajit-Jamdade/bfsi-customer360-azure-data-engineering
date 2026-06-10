@@ -193,17 +193,17 @@ Stores business-ready curated datasets.
 
 ✅ Dataset Generation
 
-⬜ ADLS Gen2 Setup
+✅ ADLS Gen2 Setup
 
-⬜ Azure Data Factory Setup
+✅ Azure Data Factory Setup
 
-⬜ Raw Layer Ingestion
+✅ Raw Layer Ingestion
 
-⬜ Silver Layer Transformation
+✅ Silver Layer Transformation
 
-⬜ Gold Layer Creation
+✅ Gold Layer Creation
 
-⬜ Synapse Integration
+✅ Synapse Integration
 
 ⬜ Power BI Dashboard
 
