@@ -213,6 +213,6 @@ Stores business-ready curated datasets.
 
 Vishwajit Sandip Jamdade
 
-Senior Software Engineer | Data Engineering Enthusiast
+Senior Data Engineer | Gen AI Enthusiast
 
 Azure Data Factory | ADLS Gen2 | Synapse | Power BI | Python
