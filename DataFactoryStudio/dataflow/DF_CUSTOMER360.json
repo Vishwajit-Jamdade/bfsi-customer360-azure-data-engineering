@@ -1,0 +1,216 @@
+{
+	"name": "DF_CUSTOMER360",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_CUSTOMERS_SILVER",
+						"type": "DatasetReference"
+					},
+					"name": "SrcCustomers"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_ACCOUNTS",
+						"type": "DatasetReference"
+					},
+					"name": "SrcAccounts"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_LOANS",
+						"type": "DatasetReference"
+					},
+					"name": "SrcLoans"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_CREDIT_CARDS",
+						"type": "DatasetReference"
+					},
+					"name": "SrcCards"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_COMPLAINTS",
+						"type": "DatasetReference"
+					},
+					"name": "SrcComplaints"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_TRANSACTIONS",
+						"type": "DatasetReference"
+					},
+					"name": "SrcTransactions"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_CUSTOMER360_GOLD",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "AggAccounts"
+				},
+				{
+					"name": "AggLoans"
+				},
+				{
+					"name": "AggCards"
+				},
+				{
+					"name": "AggComplaints"
+				},
+				{
+					"name": "AggTransactions"
+				},
+				{
+					"name": "join1"
+				},
+				{
+					"name": "join2"
+				},
+				{
+					"name": "join3"
+				},
+				{
+					"name": "join4"
+				},
+				{
+					"name": "JoinTxnAccounts"
+				},
+				{
+					"name": "AggTxnCustomer"
+				},
+				{
+					"name": "Customer360Join"
+				},
+				{
+					"name": "CustomerSegment"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          customer_id as string,",
+				"          first_name as string,",
+				"          last_name as string,",
+				"          city as string,",
+				"          state as string,",
+				"          annual_income as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SrcCustomers",
+				"source(output(",
+				"          account_id as string,",
+				"          customer_id as string,",
+				"          account_type as string,",
+				"          balance as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SrcAccounts",
+				"source(output(",
+				"          loan_id as string,",
+				"          customer_id as string,",
+				"          loan_type as string,",
+				"          loan_amount as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SrcLoans",
+				"source(output(",
+				"          card_id as string,",
+				"          customer_id as string,",
+				"          card_type as string,",
+				"          credit_limit as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SrcCards",
+				"source(output(",
+				"          complaint_id as string,",
+				"          customer_id as string,",
+				"          complaint_type as string,",
+				"          status as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SrcComplaints",
+				"source(output(",
+				"          transaction_id as string,",
+				"          account_id as string,",
+				"          transaction_type as string,",
+				"          amount as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SrcTransactions",
+				"SrcAccounts aggregate(groupBy(customer_id),",
+				"     TOTAL_ACCOUNTS = count(account_id)) ~> AggAccounts",
+				"SrcLoans aggregate(groupBy(customer_id),",
+				"     TOTAL_LOANS = count(loan_id)) ~> AggLoans",
+				"SrcCards aggregate(groupBy(customer_id),",
+				"     TOTAL_CARDS = count(card_id)) ~> AggCards",
+				"SrcComplaints aggregate(groupBy(customer_id),",
+				"     TOTAL_COMPLAINTS = count(complaint_id)) ~> AggComplaints",
+				"SrcTransactions aggregate(groupBy(account_id),",
+				"     TOTAL_TRANSACTIONS = count(transaction_id),",
+				"          TOTAL_TRANSACTION_AMOUNT = sum(amount),",
+				"          AVG_TRANSACTION_AMOUNT = avg(amount)) ~> AggTransactions",
+				"SrcCustomers, AggAccounts join(SrcCustomers@customer_id == AggAccounts@customer_id,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join1, AggLoans join(SrcCustomers@customer_id == AggLoans@customer_id,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join2",
+				"join2, AggCards join(SrcCustomers@customer_id == AggCards@customer_id,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join3",
+				"join3, AggComplaints join(SrcCustomers@customer_id == AggComplaints@customer_id,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join4",
+				"AggTransactions, SrcAccounts join(AggTransactions@account_id == SrcAccounts@account_id,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> JoinTxnAccounts",
+				"JoinTxnAccounts aggregate(groupBy(customer_id),",
+				"     TOTAL_TRANSACTIONS = sum(TOTAL_TRANSACTIONS),",
+				"          TOTAL_TRANSACTION_AMOUNT = sum(TOTAL_TRANSACTION_AMOUNT),",
+				"          AVG_TRANSACTION_AMOUNT = avg(AVG_TRANSACTION_AMOUNT)) ~> AggTxnCustomer",
+				"join4, AggTxnCustomer join(SrcCustomers@customer_id == AggTxnCustomer@customer_id,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> Customer360Join",
+				"Customer360Join derive(CUSTOMER_SEGMENT = iif(TOTAL_TRANSACTION_AMOUNT > 5000000,'PLATINUM',     iif(TOTAL_TRANSACTION_AMOUNT > 1000000,'GOLD',         'SILVER'))) ~> CustomerSegment",
+				"CustomerSegment sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['customer360_gold.csv'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sink1"
+			]
+		}
+	}
+}

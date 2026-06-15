@@ -1,0 +1,38 @@
+{
+	"name": "DS_METADATA_CONTROL",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ADLS_GEN2",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "metadata_control.csv",
+				"folderPath": "control",
+				"fileSystem": "metadata"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "source_folder",
+				"type": "String"
+			},
+			{
+				"name": "target_folder",
+				"type": "String"
+			},
+			{
+				"name": "file_name",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

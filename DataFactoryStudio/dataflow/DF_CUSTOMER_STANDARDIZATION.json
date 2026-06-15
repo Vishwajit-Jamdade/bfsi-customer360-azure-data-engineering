@@ -1,0 +1,58 @@
+{
+	"name": "DF_CUSTOMER_STANDARDIZATION",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_CUSTOMERS_SILVER",
+						"type": "DatasetReference"
+					},
+					"name": "SrcCustomers"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_CUSTOMERS_GOLD",
+						"type": "DatasetReference"
+					},
+					"name": "SnkCustomersGold"
+				}
+			],
+			"transformations": [
+				{
+					"name": "DrvCustomers"
+				},
+				{
+					"name": "FltValidCustomers"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          customer_id as string,",
+				"          first_name as string,",
+				"          last_name as string,",
+				"          city as string,",
+				"          state as string,",
+				"          annual_income as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SrcCustomers",
+				"SrcCustomers derive(FULL_NAME = first_name + ' ' + last_name,",
+				"          INCOME_BAND = iif(annual_income < 500000,'LOW', iif(annual_income < 1500000,'MEDIUM','HIGH')),",
+				"          REGION = iif(state == 'Maharashtra','WEST', iif(state == 'Delhi','NORTH','OTHER'))) ~> DrvCustomers",
+				"DrvCustomers filter(!isNull(customer_id)) ~> FltValidCustomers",
+				"FltValidCustomers sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SnkCustomersGold"
+			]
+		}
+	}
+}
